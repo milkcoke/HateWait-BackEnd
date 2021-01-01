@@ -4,10 +4,9 @@ const getPoolConnection = require('../db/dbConnection');
 const Models = require('../models');
 const storeModel = Models.store;
 const checkId = require('../function/check_id');
+
 // 앱에서만 사용 (손님 회원 쿠폰&스탬프 보유 현황 확인)
 // //return info : 가게명, 쿠폰 발급 기준 스탬프수, 해당 회원 보유 스탬프 수, 발급 쿠폰 수
-
-
 router.get('/', (request, response) => {
     console.log("===============I'm in coupon root route!===================");
     console.log(`request userType : ${request.userType}`);
@@ -39,14 +38,14 @@ router.get('/', (request, response) => {
             const sql = `SELECT DISTINCT store.id AS store_id, store.name AS store_name, stamp.count AS stamp_count, cuinfo.maximum_stamp AS maximum_stamp,
             cuinfo.benefit_description AS benefit_description, 
             (SELECT COUNT(*) FROM coupon WHERE store_id = store.id AND member_id=?) AS coupon_count
-            FROM stamp INNER JOIN store ON stamp.store_id = store.id
+            FROM stamp INNER JOIN store ON stamp.store_id = store.id AND member_id=?
             INNER JOIN coupon_information AS cuinfo ON store.id = cuinfo.store_id
             INNER JOIN visit_log ON store.id = visit_log.store_id
             WHERE store.coupon_enable = true AND visit_log.member_id=?
             ORDER BY visit_log.visit_time DESC`;
 
             getPoolConnection(connection=>{
-                connection.execute(sql, [memberId, memberId], (error, rows) => {
+                connection.execute(sql, [memberId, memberId, memberId], (error, rows) => {
                     connection.release();
                     if (error) {
                         errorRespond(error);
